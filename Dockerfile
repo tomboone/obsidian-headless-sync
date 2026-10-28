@@ -1,3 +1,4 @@
+# Keep the Node major in step with `node-version` in .github/workflows/ci.yml, so CI tests what ships.
 FROM node:22-bookworm-slim
 
 # Pinned: obsidian-headless is pre-1.0 and its CLI may change between releases.
