@@ -10,6 +10,7 @@ const VAULT = process.env.VAULT_PATH ?? "/vault";
 const CONFIG = process.env.CONFIG_PATH ?? "/app/config.json";
 const DAYS_BACK = Number(process.env.DAYS_BACK ?? 1);
 const DRY_RUN = process.env.DRY_RUN === "1";
+const KUMA_PUSH_URL = process.env.KUMA_PUSH_URL;
 
 const config = JSON.parse(await fs.readFile(CONFIG, "utf8"));
 
@@ -51,8 +52,8 @@ for (let offset = DAYS_BACK; offset >= 0; offset--) {
 }
 
 if (!DRY_RUN) {
-  if (firstFailure) await pushStatus(process.env.KUMA_PUSH_URL, "down", firstFailure);
-  else await pushStatus(process.env.KUMA_PUSH_URL, "up", "OK");
+  if (firstFailure) await pushStatus(KUMA_PUSH_URL, "down", firstFailure);
+  else await pushStatus(KUMA_PUSH_URL, "up", "OK");
 }
 // Non-zero so loop.sh logs "run failed" when a day was skipped.
 if (firstFailure) process.exitCode = 1;

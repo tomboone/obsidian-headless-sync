@@ -42,6 +42,14 @@ test("down sends the message encoded and truncated to 200", async () => {
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, `${URL_}?status=down&msg=${encodeURIComponent(msg.slice(0, 200))}`);
   assert.ok(calls[0].url.includes("2026-10-28%3A%20GitHub"));
+  assert.equal(new URL(calls[0].url).searchParams.get("msg").length, 200);
+});
+
+test("truncation never splits a character", async () => {
+  mockFetch(() => new Response("ok"));
+  await pushStatus(URL_, "down", `${"a".repeat(199)}😀 and more`);
+  assert.equal(calls.length, 1);
+  assert.equal(new URL(calls[0].url).searchParams.get("msg"), `${"a".repeat(199)}😀`);
 });
 
 for (const url of [undefined, ""]) {
