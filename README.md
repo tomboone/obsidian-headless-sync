@@ -31,6 +31,8 @@ the `log` folder can show, say, all work activity for a week.
 - Files are rewritten only when their content changes, to avoid needless sync churn.
 - If any source fails, that day is skipped and existing files are left alone, so a bad token or
   an API outage never replaces a day's log with partial data.
+- If `KUMA_PUSH_URL` is set, each run pushes `up` to that Uptime Kuma push monitor, or `down` with
+  the first failure when a day was skipped (and the run exits non-zero).
 - Treat `log/` as machine-owned. Edits there are overwritten on the next run, so put your
   thoughts in the daily note instead.
 - GitHub commits appear as per-repo counts (from your contribution graph), which keeps busy days
