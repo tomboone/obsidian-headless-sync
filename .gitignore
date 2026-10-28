@@ -1,4 +1,4 @@
-data/
-.env
-config.json
+deploy/data/
+deploy/.env
+deploy/config.json
 .DS_Store

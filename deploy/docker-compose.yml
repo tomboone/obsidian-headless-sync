@@ -1,0 +1,53 @@
+name: obsidian-worklog
+
+# All network traffic is outbound (Obsidian Sync, GitHub, Linear, Uptime Kuma), so no
+# Tailscale sidecar or published ports are needed.
+
+x-common: &common
+  # `latest` tracks main; pin `sha-<7>` to roll back (README).
+  image: ghcr.io/tomboone/obsidian-worklog:latest
+  restart: unless-stopped
+  user: "${PUID:-1000}:${PGID:-1000}"
+  environment:
+    TZ: ${TZ:-America/New_York}
+    XDG_CONFIG_HOME: /config   # where `ob` keeps its login + vault sync state
+    VAULT_PATH: /vault
+  labels:
+    - com.centurylinklabs.watchtower.enable=true
+    - com.centurylinklabs.watchtower.scope=obsidian-worklog
+
+services:
+  sync:
+    <<: *common
+    command: ["ob", "sync", "--path", "/vault", "--continuous"]
+    volumes:
+      - ./data/vault:/vault
+      - ./data/config:/config
+
+  worker:
+    <<: *common
+    env_file: .env
+    volumes:
+      - ./data/vault:/vault
+      - ./config.json:/app/config.json:ro
+    command: ["sh", "/app/scripts/loop.sh"]
+    depends_on: [sync]
+    # kuma-push lets KUMA_PUSH_URL reach http://uptime-kuma:3001 with nothing published.
+    # Naming a network drops the implicit default, so list it too.
+    networks: [default, kuma-push]
+
+  # Polls GHCR every 5 minutes and restarts only enabled containers in the `obsidian-worklog`
+  # scope, so it leaves the other apps' containers on the same host alone. The instance carries
+  # its own scope label, as Watchtower's multiple-instance docs require.
+  watchtower:
+    image: nickfedor/watchtower:1.23.2
+    command: ["--label-enable", "--scope", "obsidian-worklog", "--interval", "300", "--cleanup"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.scope=obsidian-worklog
+
+networks:
+  kuma-push:
+    external: true
