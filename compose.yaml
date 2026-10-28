@@ -5,7 +5,7 @@
 x-common: &common
   # Prebuilt by .github/workflows/image.yml. To build on the mini instead:
   # IMAGE=obsidian-worklog:local docker compose build
-  image: ${IMAGE:-ghcr.io/YOUR_GITHUB_USER/obsidian-worklog:latest}
+  image: ${IMAGE:-ghcr.io/tomboone/obsidian-headless-sync:latest}
   build: .
   pull_policy: missing
   restart: unless-stopped
