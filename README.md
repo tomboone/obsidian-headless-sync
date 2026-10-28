@@ -26,8 +26,8 @@ Everything is outbound traffic, so no ports, reverse proxy, or tailnet sidecar a
 
 2. **Get the image and log in to Obsidian** (interactive, once; enter your 2FA code when prompted)
 
-   Pushing to `main` builds `ghcr.io/<you>/obsidian-worklog` via GitHub Actions. Set
-   `YOUR_GITHUB_USER` in `compose.yaml` (or `IMAGE=` in `.env`). If the package is private,
+   Pushing to `main` builds `ghcr.io/tomboone/obsidian-headless-sync` via GitHub Actions. To use
+   a different image, set `IMAGE=` in `.env`. If the package is private,
    run `docker login ghcr.io` on the mini with a PAT that has `read:packages`.
 
    ```sh
