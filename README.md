@@ -9,11 +9,16 @@ Logs your daily GitHub and Linear activity into an Obsidian Sync vault, split by
   e.g. `log/2026/2026-10-28 work.md`.
 
 Everything is outbound traffic, so no ports, reverse proxy, or tailnet sidecar are needed.
+It runs on kumadrome from the published image; [deploy/README.md](deploy/README.md) is the
+runbook for deploying, operating, and rolling it back.
 
-## Setup
+## Contexts
 
-The app runs from the published image with the Compose file in `deploy/`. See
-[deploy/README.md](deploy/README.md) for setup, Obsidian login, and updates.
+`config.json` lists the Contexts, and every Context gets an Activity log each day, even an
+empty one ("_Nothing logged._"). Each Source (a GitHub account or Linear workspace) has a
+default `context`; `owners` (GitHub org or user) and `teams` (Linear team key) send matching
+activity elsewhere, e.g. `"owners": {"acme-corp": "work"}`. Add entries to the `github` or
+`linear` arrays for more Sources. `deploy/config.example.json` is a starting point.
 
 ## In Obsidian
 
@@ -44,4 +49,4 @@ the `log` folder can show, say, all work activity for a week.
 
 - `obsidian-headless` is pinned to 0.0.14 in the Dockerfile because it's pre-1.0; bump deliberately.
 - The GitHub and Linear queries were tested against mocked responses, not live APIs. The dry run
-  in [deploy/README.md](deploy/README.md) is the first real check; send me any errors it prints.
+  in [deploy/README.md](deploy/README.md) (step 5) is the first real check.
