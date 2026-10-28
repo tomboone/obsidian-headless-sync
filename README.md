@@ -12,49 +12,8 @@ Everything is outbound traffic, so no ports, reverse proxy, or tailnet sidecar a
 
 ## Setup
 
-1. **Config and secrets**
-
-   ```sh
-   cp .env.example .env            # tokens, TZ, PUID/PGID
-   cp config.example.json config.json
-   mkdir -p data/vault data/config
-   ```
-
-   In `config.json`, `context` is the default for each account or workspace. `owners` (GitHub
-   org/user) and `teams` (Linear team key) override it, e.g. `"owners": {"acme-corp": "work"}`.
-   Add more entries to the `github` or `linear` arrays for separate accounts or workspaces.
-
-2. **Get the image and log in to Obsidian** (interactive, once; enter your 2FA code when prompted)
-
-   Pushing to `main` builds `ghcr.io/tomboone/obsidian-worklog` via GitHub Actions. To use
-   a different image, set `IMAGE=` in `.env`. If the package is private,
-   run `docker login ghcr.io` on the mini with a PAT that has `read:packages`.
-
-   ```sh
-   docker compose pull             # or: IMAGE=obsidian-worklog:local docker compose build
-   docker compose run --rm sync ob login
-   docker compose run --rm sync ob sync-list-remote
-   docker compose run --rm sync ob sync-setup --vault "Your Vault" --path /vault --device-name mac-mini
-   docker compose run --rm sync ob sync-config --path /vault --configs "" --file-types ""
-   ```
-
-   The last command stops this device from syncing app settings and attachments it doesn't need.
-   For an end-to-end encrypted vault, `sync-setup` prompts for the vault password.
-
-3. **Dry run the fetchers** (prints files instead of writing them)
-
-   ```sh
-   docker compose run --rm -e DRY_RUN=1 worker node /app/src/run.mjs
-   ```
-
-4. **Start it**
-
-   ```sh
-   docker compose up -d
-   docker compose logs -f
-   ```
-
-   To update later: `docker compose pull && docker compose up -d`.
+The app runs from the published image with the Compose file in `deploy/`. See
+[deploy/README.md](deploy/README.md) for setup, Obsidian login, and updates.
 
 ## In Obsidian
 
@@ -83,4 +42,4 @@ the `log` folder can show, say, all work activity for a week.
 
 - `obsidian-headless` is pinned to 0.0.14 in the Dockerfile because it's pre-1.0; bump deliberately.
 - The GitHub and Linear queries were tested against mocked responses, not live APIs. The dry run
-  in step 3 is the first real check; send me any errors it prints.
+  in [deploy/README.md](deploy/README.md) is the first real check; send me any errors it prints.
