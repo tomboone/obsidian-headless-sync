@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { dayRange } from "./dates.mjs";
+import { pushStatus } from "./push.mjs";
 import { render } from "./render.mjs";
 import { fetchGitHub } from "./sources/github.mjs";
 import { fetchLinear } from "./sources/linear.mjs";
@@ -9,6 +10,7 @@ const VAULT = process.env.VAULT_PATH ?? "/vault";
 const CONFIG = process.env.CONFIG_PATH ?? "/app/config.json";
 const DAYS_BACK = Number(process.env.DAYS_BACK ?? 1);
 const DRY_RUN = process.env.DRY_RUN === "1";
+const KUMA_PUSH_URL = process.env.KUMA_PUSH_URL;
 
 const config = JSON.parse(await fs.readFile(CONFIG, "utf8"));
 
@@ -25,12 +27,15 @@ async function writeIfChanged(file, content) {
   return true;
 }
 
+let firstFailure = null;
+
 for (let offset = DAYS_BACK; offset >= 0; offset--) {
   const range = dayRange(offset);
   const results = await Promise.allSettled(jobs.map((job) => job(range)));
   const failures = results.filter((r) => r.status === "rejected");
   for (const f of failures) console.error(`[${range.ymd}] ${f.reason?.message ?? f.reason}`);
   if (failures.length) {
+    firstFailure ??= `${range.ymd}: ${failures[0].reason?.message ?? failures[0].reason}`;
     // Never overwrite a day's log with partial data.
     console.error(`[${range.ymd}] skipped: a source failed, existing files left untouched`);
     continue;
@@ -45,3 +50,10 @@ for (let offset = DAYS_BACK; offset >= 0; offset--) {
     if (await writeIfChanged(file, content)) console.log(`[${range.ymd}] updated ${path.relative(VAULT, file)}`);
   }
 }
+
+if (!DRY_RUN) {
+  if (firstFailure) await pushStatus(KUMA_PUSH_URL, "down", firstFailure);
+  else await pushStatus(KUMA_PUSH_URL, "up", "OK");
+}
+// Non-zero so loop.sh logs "run failed" when a day was skipped.
+if (firstFailure) process.exitCode = 1;
