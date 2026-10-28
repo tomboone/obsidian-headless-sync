@@ -1,0 +1,33 @@
+name: ci
+
+# Runs on PRs, and on main only through image.yml, which calls it before publishing so a red main
+# ships no image. No push trigger here, so main runs it once.
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # The image's Node major (Dockerfile: node:22-bookworm-slim), so CI tests what ships.
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      # No package.json and no dependencies (spec Decision 5), so syntax checks stand in for a linter.
+      - name: Syntax check
+        run: |
+          find src -name '*.mjs' -print0 | xargs -0 -n1 node --check
+          sh -n scripts/loop.sh
+
+      # Quoted so Node expands the glob; Node 22 does not accept a directory here.
+      - name: Tests
+        run: node --test 'src/**/*.test.mjs'

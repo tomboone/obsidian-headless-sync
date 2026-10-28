@@ -45,6 +45,8 @@ kumadrome has no `~/.docker/config.json`), and the `obsidian-headless-sync` pack
 - Current action majors, matching closinglineup (`actions/checkout@v7`, `docker/login-action@v4`,
   `docker/metadata-action@v6`, `docker/build-push-action@v7`, `docker/setup-buildx-action@v4`).
 - `platforms: linux/amd64` stays (kumadrome is x86_64).
+- A `ci` job calls `.github/workflows/ci.yml` and `publish` has `needs: ci`, so tests gate every publish
+  (Decision 5, NEU-2015). The siblings don't gate theirs.
 - Image is `ghcr.io/tomboone/obsidian-worklog` (written out, not `${{ github.repository }}`, matching
   siblings).
 
@@ -105,8 +107,10 @@ The worker reports each Run's outcome to an Uptime Kuma push monitor, `kumadrome
   status, msg)`) so it can be tested with a mocked `fetch`.
 - With hourly Runs and a 3 h interval, two missed Runs in a row are tolerated; a third alerts. A
   `status=down` alerts at once.
-- **Tests** use Node's built-in `node:test` and `node:assert`, in `src/*.test.mjs`, run with
-  `node --test src/`. No `package.json`, no dependencies, no CI workflow: tests run locally. `fetch` is
+- **Tests** use Node's built-in `node:test` and `node:assert`, as `*.test.mjs` under `src/`, run with
+  `node --test 'src/**/*.test.mjs'` (quoted, since Node 22 does not accept a directory). No `package.json`, no
+  dependencies. `.github/workflows/ci.yml` runs them with a syntax check on every PR, and `image.yml` calls it
+  before publishing, so a failing `main` ships no image (NEU-2015). `fetch` is
   mocked by replacing `globalThis.fetch` in the test. Cover: up with `msg=OK`; down with the encoded,
   truncated message; no call when the URL is unset or empty; a rejected or non-2xx `fetch` logs and
   resolves without throwing.
