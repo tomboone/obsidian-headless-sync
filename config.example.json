@@ -1,0 +1,22 @@
+{
+  "logFolder": "log",
+  "contexts": ["work", "hobby", "personal"],
+
+  "github": [
+    {
+      "name": "personal account",
+      "tokenEnv": "GITHUB_TOKEN_PERSONAL",
+      "context": "hobby",
+      "owners": { "acme-corp": "work" }
+    }
+  ],
+
+  "linear": [
+    {
+      "name": "work workspace",
+      "tokenEnv": "LINEAR_API_KEY_WORK",
+      "context": "work",
+      "teams": {}
+    }
+  ]
+}
